@@ -3,17 +3,25 @@
  * @author Bruckmann C., Wagner R.
  *
  */
-class Edge 
+class Edge
 	{
-		Vertex start;
-		Vertex end;
+		int start;
+		int end;
 		double weight;
-		public Edge(Vertex start, Vertex end) 
+		// normal constructor for unweighted edges
+		public Edge(int start, int end) 
 		{
-
+			this.start = start;
+			this.end = end;
+			weight = 1;
+		
 		}
-		public Edge(Vertex start, Vertex end, double weight) 
+		// overload constructor for weighted edges
+		public Edge(int start, int end, double weight) 
 		{
+			this.start = start;
+			this.end = end;
+			
 			if(weight < 0)
 			{
 				this.weight = 0;
