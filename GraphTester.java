@@ -60,13 +60,33 @@ public class GraphTester extends TestCase {
 		Graph g = new Graph();
 		Vertex v1 = new Vertex(1, 2);
 		g.addVertex(v1);
+		System.out.println("vertexlabel of v1+1: "+g.vertexlabel);
 		Vertex v2 = new Vertex(3,4);
 		g.addVertex(v2);
+		System.out.println("vertexlabel of v2+1: "+g.vertexlabel);
 		
-		boolean success = g.addEdge(1, 2, 1);
-		/*assertTrue("edge should be added", success);
-		assertEquals(g.edgeSet.size(),1);*/
+		
+		
+		boolean success = g.addEdge(0, 1, 1);
+		assertTrue("edge should be added", success);
+		assertEquals(g.edgeSet.size(),1);
+		
+		success = g.addEdge(1, 2, 1);
+		assertFalse("vertex 2 does not exist, edge should not be added", success);
 		
 	}
+	
+	/*public void testRemoveEdge() {
+		Graph g = new Graph();
+		Vertex v1 = new Vertex(1, 2);
+		g.addVertex(v1);
+		Vertex v2 = new Vertex(3,4);
+		g.addVertex(v2);
+		g.addEdge(0, 1, 1);
+		System.out.println("number of edges in edgeSet: "+g.edgeSet.size());
+		
+		boolean success = g.removeEdge(0, 1);
+		assertTrue(success);
+	}*/
 }
 	

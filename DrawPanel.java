@@ -25,6 +25,7 @@ public class DrawPanel extends JPanel
 	private static ArrayList<Line> lines;
 	//private final int WIDTH = 800;
 	//private final int HEIGHT = 1200;
+	static boolean loadedFile = false;
 	
 	public static Graph graph = new Graph();
 	int circleindex = 0;
@@ -91,37 +92,45 @@ public class DrawPanel extends JPanel
             @Override
             public void mousePressed(MouseEvent e) 
             {
-            	Circle actualCircle = new Circle(10, mouseX, mouseY);
-            	//Vertex vertexToAdd = new Vertex(mouseX,mouseY);
-            	//graph.addVertex(vertexToAdd);
-            	// test for painting only unique circles
-            	boolean circleTester = false;
-            	for(Circle c : circles)
+            	if(loadedFile == true)
             	{
-            		// checks whether the x coordinate is taken or not
-            		if(mouseX <= c.getX()+20 & mouseX>=c.getX()-20 & mouseY <= c.getY()+20 & mouseY >=c.getY()-20)
-            		{
-            			circleTester = true;
-            		}
+            		// if a file was loaded, no more edges should be created
             	}
-            	if(circleTester == true)
-            	{
-            		
-            	}
-            	// draw only new circles
             	else
             	{
-            		if(circleindex < 50)
-            		{
-                    	circles.add(circleindex,actualCircle);
-                    	circleindex++;
-                    	//add vertex(mouseX, mouseY) to vertexSet
-                    	Vertex newVertex = new Vertex(mouseX, mouseY);
-                    	graph.addVertex(newVertex);
-                    	repaint();
-            		}
-            	}
+            		Circle actualCircle = new Circle(10, mouseX, mouseY);
+                	//Vertex vertexToAdd = new Vertex(mouseX,mouseY);
+                	//graph.addVertex(vertexToAdd);
+                	// test for painting only unique circles
+                	boolean circleTester = false;
+                	for(Circle c : circles)
+                	{
+                		// checks whether the x coordinate is taken or not
+                		if(mouseX <= c.getX()+20 & mouseX>=c.getX()-20 & mouseY <= c.getY()+20 & mouseY >=c.getY()-20)
+                		{
+                			circleTester = true;
+                		}
+                	}
+                	if(circleTester == true)
+                	{
+                		
+                	}
+                	// draw only new circles
+                	else
+                	{
+                		if(circleindex < 50)
+                		{
+                        	circles.add(circleindex,actualCircle);
+                        	circleindex++;
+                        	//add vertex(mouseX, mouseY) to vertexSet
+                        	Vertex newVertex = new Vertex(mouseX, mouseY);
+                        	graph.addVertex(newVertex);
+                        	repaint();
+                		}
+                	}
 
+            	}
+            	
             }
 
             @Override
@@ -143,6 +152,7 @@ public class DrawPanel extends JPanel
 
 		lines.set(lineindex1, new Line(circles.get(cid1), circles.get(cid2)));
 		lines.set(lineindex2, new Line(circles.get(cid1), circles.get(cid2)));
+		graph.addEdge(cid1, cid2, 1);
 		repaint();
 		
 	}
@@ -161,6 +171,22 @@ public class DrawPanel extends JPanel
 		lines.set(lineindex2, new Line( new Circle(0,0,0), new Circle(0,0,0)));
 		repaint();
 	}
+	
+	public void removeEdge2(int cid1, int cid2)
+	{
+		
+		if (cid1 < 0 || cid2 < 0 || cid1 >= circles.size() || cid2 >= circles.size()) 
+		{
+			throw new IllegalArgumentException("Ids must be valid");
+		}
+		
+		lineindex1 = ((cid1*numberOfVertices) + cid2);
+		lineindex2 = ((cid2*numberOfVertices) + cid1);	
+		
+		lines.set(lineindex1, new Line( new Circle(0,0,0), new Circle(0,0,0)));
+		lines.set(lineindex2, new Line( new Circle(0,0,0), new Circle(0,0,0)));
+		repaint();
+}
 		
 	@Override
     protected void paintComponent (Graphics g)
@@ -222,10 +248,11 @@ public class DrawPanel extends JPanel
 			//second integer is the amount of edges
 			int numberOfEdges = fileIn.nextInt();
 			circles = new ArrayList<Circle>(numberOfVertices);
-			lines = new ArrayList<Line>(numberOfEdges);
-					
+			lines = new ArrayList<Line>(numberOfVertices*(numberOfVertices-1));
+			
+
 			Circle startcircle = new Circle(0,0,0);
-			for(int i = 0; i < numberOfEdges; i ++ )
+			for(int i = 0; i < (numberOfVertices*(numberOfVertices-1)); i ++ )
 			{
 				lines.add(i, new Line(startcircle,startcircle));
 			}
@@ -236,28 +263,30 @@ public class DrawPanel extends JPanel
 				//random value between 5 and 1195
 				Random rand = new Random();
 				int x = rand.nextInt(950)+50;
-				circles.add(i, new Circle(10, x, ((1+i) *(800/(numberOfEdges+2)) )));
+				circles.add(i, new Circle(10, x, ((1+i) *(800/(numberOfVertices+2)) )));
 				graph.addVertex(new Vertex(x,i *(800/numberOfEdges)));
 			}
-			//does only read if file has a following word
+			
 			for(int i = 0; i < numberOfEdges; i ++ )
 			{
 				//create edge(fileIn.nextInt(), fileIn.nextInt())
 				int start = fileIn.nextInt();
 				int end = fileIn.nextInt();
 				//graph.addEdge(start, end, 0);
-				lines.set(i, new Line(circles.get(start), circles.get(end)));
+				lines.set((start*numberOfVertices)+end, new Line(circles.get(start), circles.get(end)));
+				lines.set((end*numberOfVertices)+start, new Line(circles.get(start), circles.get(end)));
 			}
 			
 			//closes scanner
 			fileIn.close();
+			loadedFile = true;
 		} 
 		catch (FileNotFoundException e) 
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
+}
 	
 	
 	// CAREFUL
@@ -273,22 +302,16 @@ public class DrawPanel extends JPanel
 			try
 			{
 				fileIn = new Scanner(new File(path));
-				int numberOfVertices = fileIn.nextInt();
 				//first line of the txt is the amount of vertices
-				/*try {
 				int numberOfVertices = fileIn.nextInt();
-				}
-				catch(Exception a)
-				{
-					JOptionPane.showMessageDialog(null, "Your .txt file does not provide the correct format.");
-				}*/
 				//second integer is the amount of edges
 				int numberOfEdges = fileIn.nextInt();
 				circles = new ArrayList<Circle>(numberOfVertices);
-				lines = new ArrayList<Line>(numberOfEdges);
-						
+				lines = new ArrayList<Line>(numberOfVertices*(numberOfVertices-1));
+				
+
 				Circle startcircle = new Circle(0,0,0);
-				for(int i = 0; i < numberOfEdges; i ++ )
+				for(int i = 0; i < (numberOfVertices*(numberOfVertices-1)); i ++ )
 				{
 					lines.add(i, new Line(startcircle,startcircle));
 				}
@@ -299,32 +322,51 @@ public class DrawPanel extends JPanel
 					//random value between 5 and 1195
 					Random rand = new Random();
 					int x = rand.nextInt(950)+50;
-					circles.add(i, new Circle(10, x, ((1+i) *(800/(numberOfEdges+2)) )));
+					circles.add(i, new Circle(10, x, ((1+i) *(800/(numberOfVertices+2)) )));
 					graph.addVertex(new Vertex(x,i *(800/numberOfEdges)));
 				}
-				//does only read if file has a following word
+				
 				for(int i = 0; i < numberOfEdges; i ++ )
 				{
 					//create edge(fileIn.nextInt(), fileIn.nextInt())
 					int start = fileIn.nextInt();
 					int end = fileIn.nextInt();
-					//graph.addEdge(start, end, 0);
-					lines.set(i, new Line(circles.get(start), circles.get(end)));
+					graph.addEdge(start, end, 0);
+					lines.set((start*numberOfVertices)+end, new Line(circles.get(start), circles.get(end)));
+					lines.set((end*numberOfVertices)+start, new Line(circles.get(start), circles.get(end)));
 				}
 				
 				//closes scanner
 				fileIn.close();
+				loadedFile = true;
 			} 
 			catch (FileNotFoundException e) 
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 		}
 		
 		
 		
 	}
+	
+	public void addEdge2(int cid1, int cid2) 
+	{
+		if (cid1 < 0 || cid2 < 0 || cid1 >= circles.size() || cid2 >= circles.size())
+		{
+			throw new IllegalArgumentException("Ids must be valid");
+		}
+		lineindex1 = ((cid1*numberOfVertices) + cid2);
+		lineindex2 = ((cid2*numberOfVertices) + cid1);
+
+		lines.set(lineindex1, new Line(circles.get(cid1), circles.get(cid2)));
+		lines.set(lineindex2, new Line(circles.get(cid1), circles.get(cid2)));
+		graph.addEdge(cid1, cid2, 1);
+		repaint();
+		
+}
 
 
 }
